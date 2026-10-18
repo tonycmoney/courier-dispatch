@@ -80,9 +80,9 @@ def optimize(
     drivers = list(db.scalars(select(Driver).where(Driver.active.is_(True)).order_by(Driver.id)))
     stops = list(db.scalars(select(Stop).where(Stop.status.in_(PLANNABLE)).order_by(Stop.id)))
     if not drivers:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "No active drivers")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "No active drivers")
     if not stops:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "No stops to plan")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "No stops to plan")
 
     problem = build_problem(settings, drivers, stops)
     solution = optimizer.solve(
