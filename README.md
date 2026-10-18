@@ -88,7 +88,7 @@ frontend/
     components/        Map, route cards, stops, drivers, add stop form
     lib/format.ts      formatting and status rules (unit tested)
     api.ts             typed API client
-Dockerfile             multi stage: build React, install deps, run on distroless as non root
+Dockerfile             multi stage: build React, then run FastAPI as non root
 .github/workflows/     CI and screenshot automation
 ```
 

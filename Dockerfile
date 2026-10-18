@@ -6,31 +6,30 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-# Stage 2: install Python dependencies with the same Python as the runtime
-FROM cgr.dev/chainguard/python:latest-dev AS deps
-# Build stage only: root is needed to write the dependency folder.
-USER root
-ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
-WORKDIR /build
-COPY backend/requirements.txt .
-RUN pip install --target /build/deps -r requirements.txt
-
-# Stage 3: minimal runtime. Chainguard's Wolfi based Python image is rebuilt
-# daily from patched sources, has no shell or package manager, and runs as
-# a non root user by default.
-FROM cgr.dev/chainguard/python:latest
+# Stage 2: API runtime on Debian 13 slim. Trivy comparisons of slim,
+# distroless and Wolfi bases showed this one has zero fixable CVEs.
+FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/deps:/app \
-    DATABASE_URL=sqlite:////tmp/dispatch.db
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /app
 
-COPY --from=deps /build/deps /deps
+# Apply any OS security updates published since the base image was built.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 1000 app && chown app:app /app
+
+COPY backend/requirements.txt ./
+RUN pip install -r requirements.txt
+
 COPY backend/app ./app
 COPY --from=web /web/dist ./static
 
+USER app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
   CMD ["python", "-c", "import os,urllib.request; urllib.request.urlopen('http://localhost:%s/api/health' % os.environ.get('PORT', '8000'))"]
 
+# Python entry point reads PORT, so no shell wrapper is needed.
 ENTRYPOINT ["python", "-m", "app.serve"]
