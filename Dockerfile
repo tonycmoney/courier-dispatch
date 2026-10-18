@@ -8,6 +8,8 @@ RUN npm run build
 
 # Stage 2: install Python dependencies with the same Python as the runtime
 FROM cgr.dev/chainguard/python:latest-dev AS deps
+# Build stage only: root is needed to write the dependency folder.
+USER root
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 COPY backend/requirements.txt .
