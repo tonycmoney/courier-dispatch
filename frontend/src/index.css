@@ -485,6 +485,11 @@ h1 {
   background: #eceae4;
 }
 
+/* Mute the basemap so routes stand out. */
+.map .leaflet-tile-pane {
+  filter: grayscale(0.85) brightness(1.04) contrast(0.92);
+}
+
 .map-add-mode {
   cursor: crosshair;
 }
