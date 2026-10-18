@@ -3,5 +3,5 @@ uvicorn[standard]==0.53.0
 sqlalchemy==2.1.5
 pydantic==2.13.5
 pydantic-settings==2.16.0
-psycopg2-binary==2.9.13
+psycopg[binary]==3.3.6
 ortools==9.15.6755
