@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db import Base, SessionLocal, engine, get_db
 from app.models import Driver, Stop, StopStatus
-from app.routers import drivers, stops
+from app.routers import dispatch, drivers, stops
 from app.schemas import Depot, Summary
 from app.seed import seed_if_empty
 
@@ -46,6 +46,7 @@ def create_app() -> FastAPI:
 
     app.include_router(drivers.router)
     app.include_router(stops.router)
+    app.include_router(dispatch.router)
 
     @app.get("/api/health", tags=["meta"])
     def health():
