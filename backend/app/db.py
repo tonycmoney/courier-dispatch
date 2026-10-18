@@ -25,7 +25,7 @@ def make_engine(url: str):
     return create_engine(url, connect_args=connect_args, pool_pre_ping=True)
 
 
-engine = make_engine(get_settings().database_url)
+engine = make_engine(get_settings().resolved_database_url)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

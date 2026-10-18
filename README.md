@@ -122,12 +122,16 @@ docker run -p 8000:8000 courier-dispatch
 # open http://localhost:8000
 ```
 
-To use Postgres, pass `-e DATABASE_URL=postgresql://user:pass@host:5432/dbname`.
+To use Postgres, pass `-e DATABASE_URL=postgresql://user:pass@host:5432/dbname`, or the separate `DB_HOST`, `DB_USER`, `DB_PASSWORD` and `DB_NAME` variables.
+
+### Production on AWS
+
+The demo runs on Railway for simplicity. A hardened AWS deployment of this same image (ECS Fargate in private subnets, WAF, KMS encrypted RDS, credentials from Secrets Manager, CloudTrail, GuardDuty) is defined in Terraform in [secure-cloud-infrastructure](https://github.com/tonycmoney/secure-cloud-infrastructure).
 
 ## Testing
 
 ```bash
-cd backend && pytest --cov=app        # 28 tests, 96% coverage
+cd backend && pytest --cov=app        # 31 tests, 96% coverage
 cd frontend && npm test               # 20 tests
 ```
 
