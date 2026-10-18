@@ -15,7 +15,7 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-class StopStatus(str, enum.Enum):
+class StopStatus(enum.StrEnum):
     pending = "pending"
     assigned = "assigned"
     in_transit = "in_transit"
