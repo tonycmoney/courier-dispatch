@@ -84,6 +84,10 @@ jobs:
       - name: Container serves API and dashboard
         run: |
           docker run -d -p 8000:8000 --name app courier-dispatch
-          for i in $(seq 1 30); do curl -sf localhost:8000/api/health && break; sleep 1; done
-          curl -sf localhost:8000/ | grep -q "Courier Dispatch"
+          ok=0
+          for i in $(seq 1 30); do curl -sf localhost:8000/api/health && ok=1 && break; sleep 1; done
           docker logs app
+          [ "$ok" = 1 ]
+          curl -sf localhost:8000/ | grep -q "Courier Dispatch"
+          curl -sf -X POST localhost:8000/api/dispatch/optimize \
+            -H 'Content-Type: application/json' -d '{"time_limit_s":1}' | grep -q total_distance_km

@@ -13,7 +13,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 WORKDIR /app
 
-RUN useradd --create-home --uid 1000 app
+RUN useradd --create-home --uid 1000 app && chown app:app /app
 
 COPY backend/requirements.txt ./
 RUN pip install -r requirements.txt
