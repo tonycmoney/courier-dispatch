@@ -6,24 +6,28 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-# Stage 2: Python API that also serves the built dashboard
-FROM python:3.12-slim
+# Stage 2: install Python dependencies on the same Debian and Python
+# version as the distroless runtime (Debian 12, Python 3.11)
+FROM python:3.11-slim-bookworm AS deps
+ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+COPY backend/requirements.txt .
+RUN pip install --target /deps -r requirements.txt
+
+# Stage 3: distroless runtime. No shell, no package manager, runs as
+# the built in non root user. Far fewer OS packages to patch.
+FROM gcr.io/distroless/python3-debian12:nonroot
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PYTHONPATH=/deps:/app \
+    DATABASE_URL=sqlite:////tmp/dispatch.db
 WORKDIR /app
 
-RUN useradd --create-home --uid 1000 app && chown app:app /app
-
-COPY backend/requirements.txt ./
-RUN pip install -r requirements.txt
-
+COPY --from=deps /deps /deps
 COPY backend/app ./app
 COPY --from=web /web/dist ./static
 
-USER app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-  CMD python -c "import urllib.request,os; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",\"8000\")}/api/health')"
+  CMD ["python3", "-c", "import os,urllib.request; urllib.request.urlopen('http://localhost:%s/api/health' % os.environ.get('PORT', '8000'))"]
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]
+ENTRYPOINT ["python3", "-m", "app.serve"]
